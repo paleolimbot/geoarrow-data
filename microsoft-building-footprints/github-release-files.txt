@@ -1,0 +1,6 @@
+microsoft-building-footprints/microsoft-building-footprints-1.parquet
+microsoft-building-footprints/microsoft-building-footprints-2.parquet
+microsoft-building-footprints/microsoft-building-footprints-3.parquet
+microsoft-building-footprints/microsoft-building-footprints-4.parquet
+microsoft-building-footprints/microsoft-building-footprints-5.parquet
+microsoft-building-footprints/microsoft-building-footprints-6.parquet

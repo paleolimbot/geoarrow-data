@@ -1,5 +1,6 @@
 
 library(tidyverse)
+library(sf)
 library(arrow)
 library(geoarrow)
 
@@ -12,73 +13,33 @@ if (!file.exists("geofabrik-osm-denmark/denmark-latest-free.shp.zip")) {
   unzip("geofabrik-osm-denmark/denmark-latest-free.shp.zip", exdir = "geofabrik-osm-denmark")
 }
 
-files <- tibble(
-  shp = list.files("data-raw/denmark", ".shp$", full.names = TRUE)
-) %>%
-  extract(shp, "name", "gis_(.*?)_free", remove = FALSE) %>%
-  mutate(
-    content = map(shp, sf::read_sf)
-  )
+shp_files <- list.files("geofabrik-osm-denmark", ".shp$", full.names = TRUE) %>%
+  str_subset("buildings|roads|waterways|railways")
+names <- shp_files %>%
+  basename() %>%
+  str_remove("_free.*?shp$") %>%
+  str_replace("^gis_osm_", "geofabrik-osm-denmark-")
 
-if (!dir.exists("data-raw/denmark_osm")) {
-  dir.create("data-raw/denmark_osm")
+for (i in seq_along(shp_files)) {
+  message(shp_files[i])
+
+  table <- read_sf(shp_files[i]) %>%
+    sf::st_transform("OGC:CRS84") %>%
+    as_tibble() %>%
+    as_geoarrow_table(geoparquet_metadata = TRUE)
+
+  write_parquet(
+    table,
+    glue::glue("geofabrik-osm-denmark/{names[i]}.parquet"),
+    compression = "zstd"
+  )
 }
 
-dst <- "data-raw/denmark_osm"
 
-for (name in files$name) {
-  message(glue::glue("Processing '{ name }'"))
+github_release_files <- list.files(
+  "geofabrik-osm-denmark",
+  "\\.parquet$",
+  full.names = TRUE
+)
 
-  src <- files$content[[match(name, files$name)]]
-  wk::wk_crs(src) <- wk::wk_crs_longlat()
-
-  # some common existing formats
-  sf::write_sf(src, glue::glue("{dst}/{name}.gpkg"))
-  sf::write_sf(src, glue::glue("{dst}/{name}.fgb"))
-
-  # for verification
-  src_wkb <- wk::wk_handle(src, wk::wkb_writer())
-  src_crs <- wk::wk_crs_proj_definition(sf::st_crs(src), verbose = TRUE)
-  attributes(src_wkb) <- NULL
-
-  check_output <- function(file) {
-    check <- read_geoparquet(
-      file,
-      handler = wk::wkb_writer()
-    )
-
-    if (!identical(wk::wk_crs(check$geometry), src_crs)) {
-      message(glue::glue("CRS was not identical for file {file}"))
-      print(waldo::compare(wk::wk_crs(check$geometry), src_crs))
-    }
-
-    attributes(check$geometry) <- NULL
-    if (!identical(check$geometry, src_wkb)) {
-      message(glue::glue("Geometry not identical for file {file}"))
-    }
-  }
-
-  write_geoparquet(
-    src,
-    glue::glue("{dst}/{name}-wkb.parquet"),
-    compression = "uncompressed",
-    schema = geoarrow_schema_wkb()
-  )
-  check_output(glue::glue("{dst}/{name}-wkb.parquet"))
-
-  write_geoparquet(
-    src,
-    glue::glue("{dst}/{name}-geoarrow.parquet"),
-    compression = "uncompressed",
-    schema = geoarrow_schema_default(src)
-  )
-  check_output(glue::glue("{dst}/{name}-geoarrow.parquet"))
-}
-
-# copy a few to a test dataset folder in the inst/ folder
-unlink("inst/denmark_osm", recursive = TRUE)
-dir.create("inst/denmark_osm")
-
-arrow::open_dataset("data-raw/denmark_osm/osm_places-geoarrow.parquet") %>%
-  dplyr::group_by(fclass) %>%
-  arrow::write_dataset("inst/example_dataset/osm_places")
+writeLines(github_release_files, "geofabrik-osm-denmark/github-release-files.txt")

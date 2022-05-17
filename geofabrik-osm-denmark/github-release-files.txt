@@ -1,0 +1,4 @@
+geofabrik-osm-denmark/geofabrik-osm-denmark-buildings_a.parquet
+geofabrik-osm-denmark/geofabrik-osm-denmark-railways.parquet
+geofabrik-osm-denmark/geofabrik-osm-denmark-roads.parquet
+geofabrik-osm-denmark/geofabrik-osm-denmark-waterways.parquet

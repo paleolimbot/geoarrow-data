@@ -41,3 +41,21 @@ if (!file.exists("phl-parking/phl-neighbourhoods.parquet")) {
   unlink(list.files("phl-parking", "^Neighborhoods_", full.names = TRUE))
   unlink("phl-parking/__MACOSX", recursive = TRUE)
 }
+
+# also write a dataset version
+if (!dir.exists("phl-parking/dataset")) {
+  read_parquet("phl-parking/phl-parking.parquet") %>%
+    mutate(
+      year = lubridate::year(issue_datetime)
+    ) %>%
+    filter(year >= 2012) %>%
+    group_by(year) %>%
+    write_dataset("phl-parking/dataset")
+}
+
+github_release_files <- c(
+  "phl-parking/phl-neighbourhoods.parquet",
+  "phl-parking/phl-parking.parquet"
+)
+
+writeLines(github_release_files, "phl-parking/github-release-files.txt")

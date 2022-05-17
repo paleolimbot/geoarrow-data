@@ -71,77 +71,114 @@ if (!dir.exists("microsoft-building-footprints/geoparquet")) {
   }
 }
 
+# Instead of writing 50 files, accumulate files until we hit the 2 GB limit
+# to reduce the number of files we have to include in the release
 library(arrow, warn.conflicts = FALSE)
 library(dplyr, warn.conflicts = FALSE)
 library(geoarrow)
 
-# workaround lack of wk methods in s2
-wk_crs.s2_geography <- function(x, ...) NULL
-wk_set_crs.s2_geography <- function(x, ...) x
+src_files <- tibble::tibble(
+  src = file.path(
+    "microsoft-building-footprints/geoparquet",
+    stringr::str_replace(states, "\\.geojson.zip$", ".parquet")
+  ),
+  src_size = file.size(src) / 1e6
+) %>%
+  arrange(desc(src_size))
 
-# get the arrow int64 representation of an s2 cell vector
-infer_type.s2_cell <- function(x, ...) int64()
-as_arrow_array.s2_cell <- function(x, ...) {
-  cells_narrow <- narrow::narrow_array(
-    narrow::narrow_schema("l"),
-    narrow::narrow_array_data(
-      length = length(x),
-      null_count = 0,
-      buffers = list(NULL, x)
-    )
-  )
+file_groups <- list()
 
-  narrow::from_narrow_array(cells_narrow, arrow::Array)
+while (nrow(src_files) > 0) {
+  total_size <- 0
+  this_group <- integer()
+  for (i in seq_len(nrow(src_files))) {
+    if ((total_size + src_files$src_size[i]) < 2000) {
+      this_group[length(this_group) + 1] <- i
+      total_size <- total_size + src_files$src_size[i]
+    }
+  }
+
+  file_groups[[length(file_groups) + 1]] <- src_files$src[this_group]
+  src_files <- src_files %>% slice(-this_group)
 }
 
-states_geoparquet <- file.path(
-  "microsoft-building-footprints/geoparquet",
-  stringr::str_replace(states, "\\.geojson.zip$", ".parquet")
+purrr::iwalk(file_groups, function(grp, i) {
+  out_f <- glue::glue("microsoft-building-footprints/microsoft-building-footprints-{i}.parquet")
+  message(out_f)
+
+  stream <- FileOutputStream$create(out_f)
+  writer <- NULL
+
+  # do this one file at a time to hopefully avoid out-of-memory
+  for (f in grp) {
+    message(glue::glue("* {f}"))
+
+    state <- f %>%
+      basename() %>%
+      stringr::str_remove("\\.parquet$") %>%
+      stringr::str_replace_all("([a-z])([A-Z])", "\\1 \\2") %>%
+      stringr::str_replace("Districtof", "District of")
+
+    table <- arrow::read_parquet(f, col_select = "geometry", as_data_frame = FALSE)
+    table_geom <- geoarrow::as_geoarrow(
+      table$geometry,
+      schema_override = geoarrow::geoarrow_schema_wkb()
+    )
+
+    message("convert")
+    table_geom_geoarrow <- geoarrow::geoarrow(table_geom)
+
+    # don't know why this gets dropped
+    wk::wk_crs(table_geom_geoarrow) <- wk::wk_crs_proj_definition(
+      sf::st_crs("OGC:CRS84"),
+      verbose = TRUE
+    )
+
+    message("recreate table")
+    table$geometry <- table_geom_geoarrow
+    meta <- geoarrow:::geoparquet_metadata(
+      narrow::as_narrow_schema(table$schema),
+      primary_column = "geometry",
+      arrays = list(narrow::as_narrow_array(table_geom_geoarrow))
+    )
+
+    # nix the bbox because we will be incrementally writing this
+    meta$columns$geometry$bbox <- NULL
+
+    table$state <- state
+    table <- table[c("state", "geometry")]
+
+    table$metadata$geo <- jsonlite::toJSON(
+      meta,
+      null = "null",
+      auto_unbox = TRUE,
+      always_decimal = TRUE
+    )
+
+    if (is.null(writer)) {
+      writer <- ParquetFileWriter$create(
+        table$schema,
+        stream,
+        properties = ParquetWriterProperties$create(
+          column_names = "geometry",
+          compression = "zstd",
+          write_statistics = FALSE
+        )
+      )
+    }
+
+    message("write")
+    writer$WriteTable(table, 2 ^ 20)
+  }
+
+  writer$Close()
+  stream$close()
+})
+
+github_release_files <- list.files(
+  "microsoft-building-footprints",
+  "[0-9]\\.parquet$",
+  full.names = TRUE
 )
 
-for (gp in states_geoparquet[44:length(states_geoparquet)]) {
-  message(gp)
-
-  state_name <- gp %>%
-    stringr::str_remove(".*/geoparquet/") %>%
-    stringr::str_remove(".parquet$") %>%
-    stringr::str_replace("([a-z])([A-Z])", "\\1 \\2") %>%
-    stringr::str_replace("Districtof", "District of")
-
-  # read to Table
-  table <- arrow::read_parquet(gp, as_data_frame = FALSE)
-
-  # calculate the building centroid S2 cell for fun...also use the parent at level
-  # 6 because that's a vaguely useful scale for this dataset
-  df <- geoarrow::geoarrow_collect(table, col_names = "geometry", handler = s2::s2_geography_writer(check = FALSE))
-  centroid_cells <-  s2::as_s2_cell(s2::s2_centroid(df$geometry))
-  centroid_cell_parent_common <- s2::s2_cell_parent(centroid_cells, level = 4)
-
-  table$s2_cell_centroid <- centroid_cells
-  table$s2_cell_index <- centroid_cell_parent_common
-
-  # sort along centroid but don't include it; include index cell so we can
-  # group by it
-  table_sorted <- table %>%
-    arrange(s2_cell_centroid) %>%
-    mutate(state = state_name) %>%
-    select(state, s2_cell_index, release, capture_dates_range, geometry) %>%
-    collect(as_data_frame = FALSE)
-
-  # convert geometry to geoarrow encoding
-  geom <- as_geoarrow(
-    table_sorted$geometry,
-    schema_override = geoarrow_schema_wkb()
-  )
-  # TODO: this shouldn't drop CRS but it does
-  geom <- geoarrow(geom)
-  wk::wk_crs(geom) <- sf::st_crs("OGC:CRS84")
-  table_sorted$geometry <- geom
-
-  write_dataset(
-    table_sorted,
-    "microsoft-building-footprints/dataset",
-    partitioning = c("state", "s2_cell_index"),
-    compression = "zstd"
-  )
-}
+writeLines(github_release_files, "microsoft-building-footprints/github-release-files.txt")

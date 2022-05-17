@@ -72,40 +72,76 @@ if (!dir.exists("microsoft-building-footprints/geoparquet")) {
 }
 
 library(arrow, warn.conflicts = FALSE)
+library(dplyr, warn.conflicts = FALSE)
 library(geoarrow)
-
-states_geoparquet <- file.path(
-  "microsoft-building-footprints/geoparquet",
-  stringr::str_replace(states, "\\.geojson.zip$", ".parquet")
-)[2]
 
 # workaround lack of wk methods in s2
 wk_crs.s2_geography <- function(x, ...) NULL
 wk_set_crs.s2_geography <- function(x, ...) x
 
-# read to Table
-table <- arrow::read_parquet(states_geoparquet, as_data_frame = FALSE)
-df <- geoarrow::geoarrow_collect(table, handler = s2::s2_geography_writer(check = FALSE))
-df$cell_id <- as.character(centroid_cells)
+# get the arrow int64 representation of an s2 cell vector
+infer_type.s2_cell <- function(x, ...) int64()
+as_arrow_array.s2_cell <- function(x, ...) {
+  cells_narrow <- narrow::narrow_array(
+    narrow::narrow_schema("l"),
+    narrow::narrow_array_data(
+      length = length(x),
+      null_count = 0,
+      buffers = list(NULL, x)
+    )
+  )
 
-# use centroid as a proxy for location and sort. Use Arrow to do this and
-# brute force the conversion to int64.
-centroid_cells <-  s2::as_s2_cell(s2::s2_centroid(df$geometry))
+  narrow::from_narrow_array(cells_narrow, arrow::Array)
+}
 
-table$centroid_cell <- Array$create(centroid_cells)
+states_geoparquet <- file.path(
+  "microsoft-building-footprints/geoparquet",
+  stringr::str_replace(states, "\\.geojson.zip$", ".parquet")
+)
 
+for (gp in states_geoparquet[44:length(states_geoparquet)]) {
+  message(gp)
 
-cell_order <- order(centroid_cells)
+  state_name <- gp %>%
+    stringr::str_remove(".*/geoparquet/") %>%
+    stringr::str_remove(".parquet$") %>%
+    stringr::str_replace("([a-z])([A-Z])", "\\1 \\2") %>%
+    stringr::str_replace("Districtof", "District of")
 
+  # read to Table
+  table <- arrow::read_parquet(gp, as_data_frame = FALSE)
 
-tbl <- read_geoparquet(states_geoparquet, )
-tbl$centroid <-
+  # calculate the building centroid S2 cell for fun...also use the parent at level
+  # 6 because that's a vaguely useful scale for this dataset
+  df <- geoarrow::geoarrow_collect(table, col_names = "geometry", handler = s2::s2_geography_writer(check = FALSE))
+  centroid_cells <-  s2::as_s2_cell(s2::s2_centroid(df$geometry))
+  centroid_cell_parent_common <- s2::s2_cell_parent(centroid_cells, level = 4)
 
-cells <- unique(s2::s2_cell_parent(tbl$centroid, level = 2))
+  table$s2_cell_centroid <- centroid_cells
+  table$s2_cell_index <- centroid_cell_parent_common
 
-# start with face cells
-cell <- tbl$centroid
+  # sort along centroid but don't include it; include index cell so we can
+  # group by it
+  table_sorted <- table %>%
+    arrange(s2_cell_centroid) %>%
+    mutate(state = state_name) %>%
+    select(state, s2_cell_index, release, capture_dates_range, geometry) %>%
+    collect(as_data_frame = FALSE)
 
-node_id <- list(s2::s2_cell_parent(cells, level = 0))
+  # convert geometry to geoarrow encoding
+  geom <- as_geoarrow(
+    table_sorted$geometry,
+    schema_override = geoarrow_schema_wkb()
+  )
+  # TODO: this shouldn't drop CRS but it does
+  geom <- geoarrow(geom)
+  wk::wk_crs(geom) <- sf::st_crs("OGC:CRS84")
+  table_sorted$geometry <- geom
 
-
+  write_dataset(
+    table_sorted,
+    "microsoft-building-footprints/dataset",
+    partitioning = c("state", "s2_cell_index"),
+    compression = "zstd"
+  )
+}

@@ -14,7 +14,7 @@ if (!file.exists("geofabrik-osm-denmark/denmark-latest-free.shp.zip")) {
 }
 
 shp_files <- list.files("geofabrik-osm-denmark", ".shp$", full.names = TRUE) %>%
-  str_subset("buildings|roads|waterways|railways")
+  str_subset("buildings|roads|waterways|railways|places_f")
 names <- shp_files %>%
   basename() %>%
   str_remove("_free.*?shp$") %>%

@@ -14,5 +14,5 @@ The neighbourhoods polygon layer was obtained from the [Avavea geo-data reposito
 
 ## Data
 
-- [phl-neighbourhoods.parquet](https://github.com/paleolimbot/geoarrow-public-data/raw/master/phl-parking/phl-neighbourhoods.parquet)
+- [phl-neighbourhoods.parquet](https://github.com/paleolimbot/geoarrow-data/raw/master/phl-parking/phl-neighbourhoods.parquet)
 - [phl-parking.csv](https://phl.carto.com/api/v2/sql?filename=parking_violations&format=csv&skipfields=cartodb_id,the_geom,the_geom_webmercator&q=SELECT%20*%20FROM%20parking_violations%20WHERE%20issue_datetime%20%3E=%20%272012-01-01%27%20AND%20issue_datetime%20%3C%20%272017-12-31%27)

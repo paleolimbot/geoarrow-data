@@ -5,8 +5,8 @@ The [Geofabrik Open Street Map](https://download.geofabrik.de/europe/denmark.htm
 
 ## Data
 
-- [geofabrik-osm-denmark-buildings_a.parquet](https://github.com/paleolimbot/geoarrow-public-data/releases/download/v0.0.1/geofabrik-osm-denmark-buildings_a.parquet)
-- [geofabrik-osm-denmark-places.parquet](https://github.com/paleolimbot/geoarrow-public-data/releases/download/v0.0.1/geofabrik-osm-denmark-places.parquet)
-- [geofabrik-osm-denmark-railways.parquet](https://github.com/paleolimbot/geoarrow-public-data/releases/download/v0.0.1/geofabrik-osm-denmark-railways.parquet)
-- [geofabrik-osm-denmark-roads.parquet](https://github.com/paleolimbot/geoarrow-public-data/releases/download/v0.0.1/geofabrik-osm-denmark-roads.parquet)
-- [geofabrik-osm-denmark-waterways.parquet](https://github.com/paleolimbot/geoarrow-public-data/releases/download/v0.0.1/geofabrik-osm-denmark-waterways.parquet)
+- [geofabrik-osm-denmark-buildings_a.parquet](https://github.com/paleolimbot/geoarrow-data/releases/download/v0.0.1/geofabrik-osm-denmark-buildings_a.parquet)
+- [geofabrik-osm-denmark-places.parquet](https://github.com/paleolimbot/geoarrow-data/releases/download/v0.0.1/geofabrik-osm-denmark-places.parquet)
+- [geofabrik-osm-denmark-railways.parquet](https://github.com/paleolimbot/geoarrow-data/releases/download/v0.0.1/geofabrik-osm-denmark-railways.parquet)
+- [geofabrik-osm-denmark-roads.parquet](https://github.com/paleolimbot/geoarrow-data/releases/download/v0.0.1/geofabrik-osm-denmark-roads.parquet)
+- [geofabrik-osm-denmark-waterways.parquet](https://github.com/paleolimbot/geoarrow-data/releases/download/v0.0.1/geofabrik-osm-denmark-waterways.parquet)

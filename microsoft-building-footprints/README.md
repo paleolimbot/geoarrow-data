@@ -7,9 +7,9 @@ The original data is licensed under the [Open Data Commons Open Database License
 
 ## Data
 
-- [microsoft-building-footprints-1.parquet](https://github.com/paleolimbot/geoarrow-public-data/releases/download/v0.0.1/microsoft-building-footprints-1.parquet)
-- [microsoft-building-footprints-2.parquet](https://github.com/paleolimbot/geoarrow-public-data/releases/download/v0.0.1/microsoft-building-footprints-2.parquet)
-- [microsoft-building-footprints-3.parquet](https://github.com/paleolimbot/geoarrow-public-data/releases/download/v0.0.1/microsoft-building-footprints-3.parquet)
-- [microsoft-building-footprints-4.parquet](https://github.com/paleolimbot/geoarrow-public-data/releases/download/v0.0.1/microsoft-building-footprints-4.parquet)
-- [microsoft-building-footprints-5.parquet](https://github.com/paleolimbot/geoarrow-public-data/releases/download/v0.0.1/microsoft-building-footprints-5.parquet)
-- [microsoft-building-footprints-6.parquet](https://github.com/paleolimbot/geoarrow-public-data/releases/download/v0.0.1/microsoft-building-footprints-6.parquet)
+- [microsoft-building-footprints-1.parquet](https://github.com/paleolimbot/geoarrow-data/releases/download/v0.0.1/microsoft-building-footprints-1.parquet)
+- [microsoft-building-footprints-2.parquet](https://github.com/paleolimbot/geoarrow-data/releases/download/v0.0.1/microsoft-building-footprints-2.parquet)
+- [microsoft-building-footprints-3.parquet](https://github.com/paleolimbot/geoarrow-data/releases/download/v0.0.1/microsoft-building-footprints-3.parquet)
+- [microsoft-building-footprints-4.parquet](https://github.com/paleolimbot/geoarrow-data/releases/download/v0.0.1/microsoft-building-footprints-4.parquet)
+- [microsoft-building-footprints-5.parquet](https://github.com/paleolimbot/geoarrow-data/releases/download/v0.0.1/microsoft-building-footprints-5.parquet)
+- [microsoft-building-footprints-6.parquet](https://github.com/paleolimbot/geoarrow-data/releases/download/v0.0.1/microsoft-building-footprints-6.parquet)

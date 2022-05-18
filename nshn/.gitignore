@@ -1,2 +1,4 @@
 nshn_v2
 geoparquet
+*.parquet
+*.gpkg

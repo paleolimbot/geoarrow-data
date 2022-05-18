@@ -25,7 +25,7 @@ This repository is a collection of recipies to make a few large-ish data sets av
 - [geofabrik-osm-denmark-roads.parquet](https://github.com/paleolimbot/geoarrow-data/releases/download/v0.0.1/geofabrik-osm-denmark-roads.parquet)
 - [geofabrik-osm-denmark-waterways.parquet](https://github.com/paleolimbot/geoarrow-data/releases/download/v0.0.1/geofabrik-osm-denmark-waterways.parquet)
 
-### [Nova Scotia Hydrographic Network](nshn)
+## [Nova Scotia Hydrographic Network](nshn)
 
 ### Metadata
 

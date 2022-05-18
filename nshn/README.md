@@ -7,6 +7,9 @@ These data were obtained under an *Unrestricted Data Use License Agreement for G
 
 ## Data
 
+- [NSHN Attribute_Specs.pdf](https://github.com/paleolimbot/geoarrow-public-data/raw/master/nshn/NSHN%20Attribute_Specs.pdf)
+- [nshn_feature_code.csv](https://github.com/paleolimbot/geoarrow-public-data/raw/master/nshn/nshn_feature_code.csv)
+
 ### GeoParquet
 
 - [nshn_basin_line.parquet](nshn_basin_line.parquet)

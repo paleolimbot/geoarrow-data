@@ -99,7 +99,7 @@ WAJCIS60,Island Junction - location where closed island segment begins and termi
 WAJCMW60,Mean Water Junction - location where mean high water level changes along the coastline (WACO meets WACO) point,WATER,NSHN_Only
 WAJCNF60,Network Flow Junction - intersection of network linear flow (skeleton / spine) with a delimiter point,WATER,NSHN_Only
 WAJCPV60,Provincial Limit Junction - intersection of Provincial Limit with hydro feature (WARV*50etc.) point,WATER,NSHN_Only
-WAJCRV60,River Junction - intersection of 3 or more WARV5*, WARVSP5* or WADI5*,WATER,NSHN_Only
+WAJCRV60,River Junction - intersection of 3 or more WARV5* WARVSP5* or WADI5*,WATER,NSHN_Only
 WAJCSK60,Skeleton Junction - intersection of 3 or more skeleton / spine linear elements point,WATER,NSHN_Only
 WAJCSL60,Shoreline Junction - intersection of network linear flow feature and shoreline elements point,WATER,NSHN_Only
 WAJCSR60,Source Junction - location of the start or origin of a network linear flow point,WATER,NSHN_Only

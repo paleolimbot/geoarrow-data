@@ -6,3 +6,4 @@ This repository is a collection of recipies to make a few large-ish data sets av
 - [Microsoft U.S. Buliding Footprints](microsoft-building-footprints)
 - [Philadelphia Parking Violations 2012-2017](phl-parking)
 - [Geofabrik Open Street Map (Denmark)](geofabrik-osm-denmark)
+- [Nova Scotia Hydrographic Network](nshn)

@@ -54,8 +54,10 @@ if (!dir.exists("phl-parking/dataset")) {
 }
 
 github_release_files <- c(
-  "phl-parking/phl-neighbourhoods.parquet",
-  "phl-parking/phl-parking.parquet"
+  # small enough for regular github
+  # "phl-parking/phl-neighbourhoods.parquet",
+  # the license is unclear here
+  # "phl-parking/phl-parking.parquet"
 )
 
-writeLines(github_release_files, "phl-parking/github-release-files.txt")
+writeLines(as.character(github_release_files), "phl-parking/github-release-files.txt")
